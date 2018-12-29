@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beanMap>
+    <bean id="testClass1" class="com.study.applicationcontext.impl.TestClass1">
+        <property name="field11" value="field11_testValue"/>
+        <property name="field12" value="123"/>
+        <property name="field13" value="456"/>
+        <property name="field14" value="7888.9"/>
+        <property name="field15" value="true"/>
+    </bean>
+
+    <bean id="testClass21" class="com.study.applicationcontext.impl.TestClass2">
+        <property name="field21" value="field_testValue"/>
+        <property name="field22" value="123"/>
+        <property name="refField21" ref="testClass1"/>
+        <property name="refField22" ref="testClass3"/>
+    </bean>
+</beanMap>
