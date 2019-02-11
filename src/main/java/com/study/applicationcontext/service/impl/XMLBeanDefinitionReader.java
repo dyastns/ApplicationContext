@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
+    private static final SchemaFactory SCHEMA_FACTORY = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     private static final String PATH_TO_XSD = "/context.xsd";
     private String[] path;
     private Validator validator;
@@ -28,10 +29,9 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
     public XMLBeanDefinitionReader(String[] path) {
         this.path = path;
 
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema;
         try (InputStream stream = this.getClass().getResourceAsStream(PATH_TO_XSD);) {
-            schema = schemaFactory.newSchema(new StreamSource(stream));
+            schema = SCHEMA_FACTORY.newSchema(new StreamSource(stream));
         } catch (SAXException e) {
             throw new RuntimeException("XSD file for context validation: " + PATH_TO_XSD + " is not valid", e);
         } catch (IOException e) {

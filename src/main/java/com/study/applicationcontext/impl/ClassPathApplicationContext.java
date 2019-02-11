@@ -15,14 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 public class ClassPathApplicationContext implements ApplicationContext {
-    private String[] path;
     private BeanDefinitionReader beanDefinitionReader;
     private Map<String, Bean> beanMap;
     private List<BeanDefinition> beanDefinitions;
 
     public ClassPathApplicationContext(String[] path) {
-        this.path = path;
-
         beanDefinitionReader = new XMLBeanDefinitionReader(path);
         beanDefinitions = beanDefinitionReader.readBeanDefinitions();
         createBeansFromBeanDefinitions();
@@ -114,8 +111,7 @@ public class ClassPathApplicationContext implements ApplicationContext {
                     for (String fieldName : dependencies.keySet()) {
                         Field field = clazz.getDeclaredField(fieldName);
                         Method setter = clazz.getMethod(getSetterMethodName(fieldName), field.getType());
-                        Object argument = getTypedValueFromString(dependencies.get(fieldName), field.getType());
-                        setter.invoke(value, argument);
+                        injectTypedValue(value, setter, dependencies.get(fieldName), field.getType());
                     }
                 }
             }
@@ -167,27 +163,27 @@ public class ClassPathApplicationContext implements ApplicationContext {
         return name.toString();
     }
 
-    private <T> T getTypedValueFromString(String value, Class<T> clazz) {
+    private void injectTypedValue(Object object, Method setter, String value, Class clazz) {
         try {
             //Primitives and String
             if (clazz == boolean.class || clazz == Boolean.class) {
-                return (T) Boolean.valueOf(value);
+                setter.invoke(object, Boolean.valueOf(value));
             } else if (clazz == char.class || clazz == Character.class) {
-                return (T) Character.valueOf(value.charAt(0));
+                setter.invoke(object, Character.valueOf(value.charAt(0)));
             } else if (clazz == byte.class || clazz == Byte.class) {
-                return (T) Byte.valueOf(value);
+                setter.invoke(object, Byte.valueOf(value));
             } else if (clazz == short.class || clazz == Short.class) {
-                return (T) Short.valueOf(value);
+                setter.invoke(object, Short.valueOf(value));
             } else if (clazz == int.class || clazz == Integer.class) {
-                return (T) Integer.valueOf(value);
+                setter.invoke(object, Integer.valueOf(value));
             } else if (clazz == long.class || clazz == Long.class) {
-                return (T) Long.valueOf(value);
+                setter.invoke(object, Long.valueOf(value));
             } else if (clazz == float.class || clazz == Float.class) {
-                return (T) Float.valueOf(value);
+                setter.invoke(object, Float.valueOf(value));
             } else if (clazz == double.class || clazz == Double.class) {
-                return (T) Double.valueOf(value);
+                setter.invoke(object, Double.valueOf(value));
             } else if (clazz == String.class) {
-                return (T) value;
+                setter.invoke(object, value);
             } else {
                 throw new BeanInstantiationException("Can't convert String value: '" + value + "' to class: " + clazz);
             }
