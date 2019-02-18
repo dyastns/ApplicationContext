@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class ClassPathApplicationContext implements ApplicationContext {
     private BeanDefinitionReader beanDefinitionReader;
-    private Map<String, Bean> beanMap;
+    private Map<String, Bean> beanMap = new HashMap<>();
     private List<BeanDefinition> beanDefinitions;
 
     public ClassPathApplicationContext(String[] path) {
@@ -77,8 +77,6 @@ public class ClassPathApplicationContext implements ApplicationContext {
     void createBeansFromBeanDefinitions() {
         String className = "";
         try {
-            Map<String, Bean> beanMap = new HashMap<>();
-
             for (BeanDefinition beanDefinition : beanDefinitions) {
                 className = beanDefinition.getBeanClassName();
                 String beanId = beanDefinition.getId();
@@ -91,8 +89,6 @@ public class ClassPathApplicationContext implements ApplicationContext {
                 Bean bean = new Bean(beanId, value);
                 beanMap.put(beanId, bean);
             }
-
-            setBeanMap(beanMap);
         } catch (Exception e) {
             throw new BeanInstantiationException("Exception while creating new instance of the class: " + className, e);
         }

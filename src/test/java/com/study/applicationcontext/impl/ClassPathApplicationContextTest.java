@@ -32,11 +32,11 @@ public class ClassPathApplicationContextTest {
         beanValue4 = new ArrayList();
         beanMap.put("id4_list", new Bean("id4_list", beanValue4));
 
-        classPathApplicationContext = new ClassPathApplicationContext("src/test/resources/test-empty-context.xml"); //!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        classPathApplicationContext = new ClassPathApplicationContext("src/test/resources/test-empty-context.xml");
         classPathApplicationContext.setBeanMap(beanMap);
 
         //for testing private methods:
-        classPathApplicationContextInternal = new ClassPathApplicationContext("src/test/resources/test-empty-context.xml");//!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        classPathApplicationContextInternal = new ClassPathApplicationContext("src/test/resources/test-empty-context.xml");
         List<BeanDefinition> beanDefinitions = ConfigurationTestClass.configureTestBeanDefinitions();
         classPathApplicationContextInternal.setBeanDefinitions(beanDefinitions);
     }

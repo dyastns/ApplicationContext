@@ -4,7 +4,7 @@
     <xs:element name="beanMap">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="bean" type="beantype" maxOccurs="unbounded"/>
+                <xs:element name="bean" type="beantype" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
