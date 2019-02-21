@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-    <xs:element name="beanMap">
+    <xs:element name="beans">
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="bean" type="beantype" minOccurs="0" maxOccurs="unbounded"/>

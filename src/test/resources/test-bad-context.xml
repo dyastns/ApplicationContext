@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beanMap>
+<beans>
     <bean id="testClass1">
         <property name="field11" value="field11_testValue"/>
         <property name="field12" value="123"/>
     </bean>
-</beanMap>
+</beans>
