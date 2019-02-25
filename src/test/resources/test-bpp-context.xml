@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+    <bean id="testClass4" class="com.study.applicationcontext.impl.TestClass4">
+        <property name="field41" value="false"/>
+        <property name="field42" value="false"/>
+        <property name="field43" value="0"/>
+        <property name="field44" value="0"/>
+    </bean>
+
+    <bean id="injectTrueBeanPostProcessor" class="com.study.applicationcontext.impl.InjectTrueBeanPostProcessor"/>
+</beans>

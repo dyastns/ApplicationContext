@@ -49,7 +49,8 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
             DocumentBuilder builder = factory.newDocumentBuilder();
 
             for (int i = 0; i < path.length; i++) {
-                File file = new File(path[i]);
+                String fileName = path[i].startsWith("/") ? path[i] : "/" + path[i];
+                File file = new File(this.getClass().getResource(fileName).getFile());
                 validateXMLByXSD(file);
                 Document document = builder.parse(file);
                 beanDefinitions.addAll(collectDocumentBeanDefinitions(document));

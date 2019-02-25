@@ -12,7 +12,7 @@ public class XMLBeanDefinitionReaderTest {
     @Test
     public void testReadBeanDefinitions() {
         //prepare
-        String[] path = {"src/test/resources/test-context1.xml", "src/test/resources/test-context2.xml"};
+        String[] path = {"/test-context1.xml", "test-context2.xml"};
         XMLBeanDefinitionReader xmlBeanDefinitionReader = new XMLBeanDefinitionReader(path);
 
         List<BeanDefinition> expected = ConfigurationTestClass.configureTestBeanDefinitions();
@@ -27,7 +27,7 @@ public class XMLBeanDefinitionReaderTest {
     @Test(expected = RuntimeException.class)
     public void testReadBeanDefinitionsWithIncorrectXml() {
         //prepare
-        String[] path = {"src/test/resources/test-bad-context.xml"};
+        String[] path = {"/test-bad-context.xml"};
         XMLBeanDefinitionReader xmlBeanDefinitionReader = new XMLBeanDefinitionReader(path);
 
         //when

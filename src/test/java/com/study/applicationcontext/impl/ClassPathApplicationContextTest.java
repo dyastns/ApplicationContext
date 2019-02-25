@@ -32,11 +32,11 @@ public class ClassPathApplicationContextTest {
         beanValue4 = new ArrayList();
         beanMap.put("id4_list", new Bean("id4_list", beanValue4));
 
-        classPathApplicationContext = new ClassPathApplicationContext("src/test/resources/test-empty-context.xml");
+        classPathApplicationContext = new ClassPathApplicationContext("/test-empty-context.xml");
         classPathApplicationContext.setBeanMap(beanMap);
 
         //for testing private methods:
-        classPathApplicationContextInternal = new ClassPathApplicationContext("src/test/resources/test-empty-context.xml");
+        classPathApplicationContextInternal = new ClassPathApplicationContext("/test-empty-context.xml");
         List<BeanDefinition> beanDefinitions = ConfigurationTestClass.configureTestBeanDefinitions();
         classPathApplicationContextInternal.setBeanDefinitions(beanDefinitions);
     }
@@ -44,7 +44,7 @@ public class ClassPathApplicationContextTest {
     @Test
     public void testClassPathApplicationContext() {
         //prepare
-        String[] path = {"src/test/resources/test-context1.xml", "src/test/resources/test-context2.xml"};
+        String[] path = {"/test-context1.xml", "/test-context2.xml"};
 
         Map<String, Bean> expectedBeanMap = new HashMap<>();
         expectedBeanMap.put("testClass1", new Bean("testClass1", new TestClass1()));
@@ -339,5 +339,31 @@ public class ClassPathApplicationContextTest {
 
         //when
         classPathApplicationContextInternal.createBeansFromBeanDefinitions();
+    }
+
+    @Test
+    public void testBeanPostProcessorPostProcesses() {
+        //prepare
+        String[] path = {"/test-bpp-context.xml"};
+
+        Map<String, Bean> expectedBeanMap = new HashMap<>();
+        expectedBeanMap.put("testClass4", new Bean("testClass4", new TestClass4()));
+
+        //when
+        ClassPathApplicationContext applicationContext = new ClassPathApplicationContext(path);
+
+        //then
+        Map<String, Bean> actualBeanMap = applicationContext.getBeanMap();
+        assertEquals(expectedBeanMap.size(), actualBeanMap.size());
+        Bean expectedBean = expectedBeanMap.get("testClass4");
+        Bean actualBean = actualBeanMap.get("testClass4");
+        assertEquals(expectedBean.getId(), actualBean.getId());
+        assertEquals(expectedBean.getValue().getClass(), actualBean.getValue().getClass());
+
+        TestClass4 value4 = (TestClass4) actualBean.getValue();
+        assertTrue(value4.getField41());
+        assertTrue(value4.getField42());
+        assertEquals(1, value4.getField43());
+        assertEquals(1, value4.getField44());
     }
 }

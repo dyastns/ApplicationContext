@@ -5,6 +5,7 @@ import com.study.applicationcontext.entity.Bean;
 import com.study.applicationcontext.entity.BeanDefinition;
 import com.study.applicationcontext.exception.BeanInstantiationException;
 import com.study.applicationcontext.service.BeanDefinitionReader;
+import com.study.applicationcontext.service.BeanPostProcessor;
 import com.study.applicationcontext.service.impl.XMLBeanDefinitionReader;
 
 import java.lang.reflect.Field;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class ClassPathApplicationContext implements ApplicationContext {
     private BeanDefinitionReader beanDefinitionReader;
     private Map<String, Bean> beanMap = new HashMap<>();
+    private List<Object> postProcessors = new ArrayList<>();
     private List<BeanDefinition> beanDefinitions;
 
     public ClassPathApplicationContext(String[] path) {
@@ -25,6 +27,8 @@ public class ClassPathApplicationContext implements ApplicationContext {
         createBeansFromBeanDefinitions();
         injectDependencies();
         injectRefDependencies();
+        invokeBeanPostProcess("postProcessBeforeInitialization");
+        invokeBeanPostProcess("postProcessAfterInitialization");
     }
 
     public ClassPathApplicationContext(String path) {
@@ -85,29 +89,39 @@ public class ClassPathApplicationContext implements ApplicationContext {
                     throw new BeanInstantiationException("Duplicated bean name: " + beanId);
                 }
 
-                Object value = Class.forName(className).newInstance();
-                Bean bean = new Bean(beanId, value);
-                beanMap.put(beanId, bean);
+                Class<?> clazz = Class.forName(className);
+                Object value = clazz.newInstance();
+
+                if (isBeanPostProcessor(clazz)) {
+                    postProcessors.add(value);
+                } else {
+                    Bean bean = new Bean(beanId, value);
+                    beanMap.put(beanId, bean);
+                }
             }
         } catch (Exception e) {
             throw new BeanInstantiationException("Exception while creating new instance of the class: " + className, e);
         }
     }
 
+
     void injectDependencies() {
         String beanId = "";
         try {
             for (BeanDefinition beanDefinition : beanDefinitions) {
                 beanId = beanDefinition.getId();
-                Object value = beanMap.get(beanId).getValue();
-                Class clazz = value.getClass();
-                Map<String, String> dependencies = beanDefinition.getDependencies();
+                Bean bean = beanMap.get(beanId);
+                if (bean != null) {
+                    Object value = bean.getValue();
+                    Class clazz = value.getClass();
+                    Map<String, String> dependencies = beanDefinition.getDependencies();
 
-                if (dependencies != null) {
-                    for (String fieldName : dependencies.keySet()) {
-                        Field field = clazz.getDeclaredField(fieldName);
-                        Method setter = clazz.getMethod(getSetterMethodName(fieldName), field.getType());
-                        injectTypedValue(value, setter, dependencies.get(fieldName), field.getType());
+                    if (dependencies != null) {
+                        for (String fieldName : dependencies.keySet()) {
+                            Field field = clazz.getDeclaredField(fieldName);
+                            Method setter = clazz.getMethod(getSetterMethodName(fieldName), field.getType());
+                            injectTypedValue(value, setter, dependencies.get(fieldName), field.getType());
+                        }
                     }
                 }
             }
@@ -121,16 +135,19 @@ public class ClassPathApplicationContext implements ApplicationContext {
         try {
             for (BeanDefinition beanDefinition : beanDefinitions) {
                 beanId = beanDefinition.getId();
-                Object value = beanMap.get(beanId).getValue();
-                Class clazz = value.getClass();
-                Map<String, String> refDependencies = beanDefinition.getRefDependencies();
+                Bean bean = beanMap.get(beanId);
+                if (bean != null) {
+                    Object value = bean.getValue();
+                    Class clazz = value.getClass();
+                    Map<String, String> refDependencies = beanDefinition.getRefDependencies();
 
-                if (refDependencies != null) {
-                    for (String fieldName : refDependencies.keySet()) {
-                        Field field = clazz.getDeclaredField(fieldName);
-                        Method setter = clazz.getMethod(getSetterMethodName(fieldName), field.getType());
-                        Object argument = beanMap.get(refDependencies.get(fieldName)).getValue();
-                        setter.invoke(value, argument);
+                    if (refDependencies != null) {
+                        for (String fieldName : refDependencies.keySet()) {
+                            Field field = clazz.getDeclaredField(fieldName);
+                            Method setter = clazz.getMethod(getSetterMethodName(fieldName), field.getType());
+                            Object argument = beanMap.get(refDependencies.get(fieldName)).getValue();
+                            setter.invoke(value, argument);
+                        }
                     }
                 }
             }
@@ -139,21 +156,38 @@ public class ClassPathApplicationContext implements ApplicationContext {
         }
     }
 
-    void setBeanMap(Map<String, Bean> beanMap) {
-        this.beanMap = beanMap;
+    private void invokeBeanPostProcess(String methodName) {
+        for (Object postProcessor : postProcessors) {
+            Class clazz = postProcessor.getClass();
+            Class<?>[] parameterTypes = {Object.class, String.class};
+            try {
+                Method postProcess = clazz.getMethod(methodName, parameterTypes);
+                for (String beanName : beanMap.keySet()) {
+                    Object[] arguments = {beanMap.get(beanName).getValue(), beanName};
+                    Object newBeanValue = postProcess.invoke(postProcessor, arguments);
+                    beanMap.put(beanName, new Bean(beanName, newBeanValue));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Exception while trying to invoke BeanPostProcessor " + postProcessor + " method " + methodName, e);
+            }
+        }
     }
 
-    Map<String, Bean> getBeanMap() {
-        return beanMap;
-    }
+    private boolean isBeanPostProcessor(Class<?> clazz) {
+        Class<?>[] interfaces = clazz.getInterfaces();
 
-    void setBeanDefinitions(List<BeanDefinition> beanDefinitions) {
-        this.beanDefinitions = beanDefinitions;
+        for (Class<?> currentInterface : interfaces) {
+            if (currentInterface == BeanPostProcessor.class) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String getSetterMethodName(String fieldName) {
         StringBuilder name = new StringBuilder("set");
-        name.append(fieldName.substring(0,1).toUpperCase());
+        name.append(fieldName.substring(0, 1).toUpperCase());
         name.append(fieldName.substring(1));
 
         return name.toString();
@@ -186,5 +220,17 @@ public class ClassPathApplicationContext implements ApplicationContext {
         } catch (Exception e) {
             throw new BeanInstantiationException("Can't convert String value: '" + value + "' to class: " + clazz, e);
         }
+    }
+
+    void setBeanMap(Map<String, Bean> beanMap) {
+        this.beanMap = beanMap;
+    }
+
+    Map<String, Bean> getBeanMap() {
+        return beanMap;
+    }
+
+    void setBeanDefinitions(List<BeanDefinition> beanDefinitions) {
+        this.beanDefinitions = beanDefinitions;
     }
 }
