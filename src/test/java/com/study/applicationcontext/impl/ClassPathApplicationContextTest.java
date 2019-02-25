@@ -110,6 +110,20 @@ public class ClassPathApplicationContextTest {
         assertSame(beanValue1, actual);
     }
 
+    @Test
+    public void testGetBeanByInterfaceClass() {
+        //prepare
+        Class<List> interfaceClass = List.class;
+        Class<ArrayList> expectedClass = ArrayList.class;
+
+        //when
+        Object actual = classPathApplicationContext.getBean(interfaceClass);
+
+        //then
+        assertEquals(expectedClass, actual.getClass());
+        assertSame(beanValue4, actual);
+    }
+
     @Test(expected = RuntimeException.class)
     public void testGetBeanByDuplicatedClass(){
         //prepare
@@ -117,6 +131,15 @@ public class ClassPathApplicationContextTest {
 
         //when
         Object actual = classPathApplicationContext.getBean(dateClass);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testGetBeanByDuplicatedInterfaceClass(){
+        //prepare
+        Class<Cloneable> cloneableClass = Cloneable.class;
+
+        //when
+        Object actual = classPathApplicationContext.getBean(cloneableClass);
     }
 
     @Test

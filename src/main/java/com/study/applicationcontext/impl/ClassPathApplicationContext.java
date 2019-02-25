@@ -41,7 +41,9 @@ public class ClassPathApplicationContext implements ApplicationContext {
 
         for (Bean bean : beanMap.values()) {
             Object value = bean.getValue();
-            if (value.getClass() == clazz) {
+            Class<?> valueClass = value.getClass();
+
+            if (valueClass == clazz || isImplements(valueClass, clazz)) {
                 count++;
                 if (count > 1) {
                     throw new RuntimeException("More than one bean exists for the class: " + clazz);
@@ -76,6 +78,21 @@ public class ClassPathApplicationContext implements ApplicationContext {
 
     public void setBeanDefinitionReader(BeanDefinitionReader beanDefinitionReader) {
         this.beanDefinitionReader = beanDefinitionReader;
+    }
+
+    //check if valueClass implements interface clazz
+    private boolean isImplements(Class<?> valueClass, Class<?> clazz) {
+        if (!clazz.isInterface()) {
+            return false;
+        }
+
+        for (Class<?> currentInterface : valueClass.getInterfaces()) {
+            if (currentInterface == clazz) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void createBeansFromBeanDefinitions() {
