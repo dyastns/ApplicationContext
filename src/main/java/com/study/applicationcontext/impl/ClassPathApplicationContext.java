@@ -18,12 +18,13 @@ import java.util.Map;
 public class ClassPathApplicationContext implements ApplicationContext {
     private BeanDefinitionReader beanDefinitionReader;
     private Map<String, Bean> beanMap = new HashMap<>();
-    private List<Object> postProcessors = new ArrayList<>();
+    private List<Object> beanPostProcessors = new ArrayList<>();
     private List<BeanDefinition> beanDefinitions;
 
     public ClassPathApplicationContext(String[] path) {
         beanDefinitionReader = new XMLBeanDefinitionReader(path);
         beanDefinitions = beanDefinitionReader.readBeanDefinitions();
+        //invokeBeanFactoryPostProcess();
         createBeansFromBeanDefinitions();
         injectDependencies();
         injectRefDependencies();
@@ -108,12 +109,11 @@ public class ClassPathApplicationContext implements ApplicationContext {
 
                 Class<?> clazz = Class.forName(className);
                 Object value = clazz.newInstance();
+                Bean bean = new Bean(beanId, value);
+                beanMap.put(beanId, bean);
 
                 if (isBeanPostProcessor(clazz)) {
-                    postProcessors.add(value);
-                } else {
-                    Bean bean = new Bean(beanId, value);
-                    beanMap.put(beanId, bean);
+                    beanPostProcessors.add(value);
                 }
             }
         } catch (Exception e) {
@@ -174,7 +174,7 @@ public class ClassPathApplicationContext implements ApplicationContext {
     }
 
     private void invokeBeanPostProcess(String methodName) {
-        for (Object postProcessor : postProcessors) {
+        for (Object postProcessor : beanPostProcessors) {
             Class clazz = postProcessor.getClass();
             Class<?>[] parameterTypes = {Object.class, String.class};
             try {
@@ -191,9 +191,7 @@ public class ClassPathApplicationContext implements ApplicationContext {
     }
 
     private boolean isBeanPostProcessor(Class<?> clazz) {
-        Class<?>[] interfaces = clazz.getInterfaces();
-
-        for (Class<?> currentInterface : interfaces) {
+        for (Class<?> currentInterface : clazz.getInterfaces()) {
             if (currentInterface == BeanPostProcessor.class) {
                 return true;
             }

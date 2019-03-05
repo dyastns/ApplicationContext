@@ -371,6 +371,7 @@ public class ClassPathApplicationContextTest {
 
         Map<String, Bean> expectedBeanMap = new HashMap<>();
         expectedBeanMap.put("testClass4", new Bean("testClass4", new TestClass4()));
+        expectedBeanMap.put("injectTrueBeanPostProcessor", new Bean("injectTrueBeanPostProcessor", new InjectTrueBeanPostProcessor()));
 
         //when
         ClassPathApplicationContext applicationContext = new ClassPathApplicationContext(path);
