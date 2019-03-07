@@ -5,10 +5,12 @@ import com.study.applicationcontext.entity.Bean;
 import com.study.applicationcontext.entity.BeanDefinition;
 import com.study.applicationcontext.exception.BeanInstantiationException;
 import com.study.applicationcontext.service.BeanDefinitionReader;
+import com.study.applicationcontext.service.BeanFactoryPostProcessor;
 import com.study.applicationcontext.service.BeanPostProcessor;
 import com.study.applicationcontext.service.impl.XMLBeanDefinitionReader;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,10 +26,13 @@ public class ClassPathApplicationContext implements ApplicationContext {
     public ClassPathApplicationContext(String[] path) {
         beanDefinitionReader = new XMLBeanDefinitionReader(path);
         beanDefinitions = beanDefinitionReader.readBeanDefinitions();
-        //invokeBeanFactoryPostProcess();
+
+        invokeBeanFactoryPostProcess();
+
         createBeansFromBeanDefinitions();
         injectDependencies();
         injectRefDependencies();
+
         invokeBeanPostProcess("postProcessBeforeInitialization");
         invokeBeanPostProcess("postProcessAfterInitialization");
     }
@@ -96,6 +101,22 @@ public class ClassPathApplicationContext implements ApplicationContext {
         return false;
     }
 
+    private void invokeBeanFactoryPostProcess() {
+        try {
+            for (BeanDefinition beanDefinition : beanDefinitions) {
+                String className = beanDefinition.getBeanClassName();
+                Class<?> clazz = Class.forName(className);
+
+                if (isImplements(clazz, BeanFactoryPostProcessor.class)) {
+                    Method postProcess = clazz.getMethod("postProcessBeanFactory", new Class[]{List.class});
+                    postProcess.invoke(clazz.newInstance() , beanDefinitions);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     void createBeansFromBeanDefinitions() {
         String className = "";
         try {
@@ -112,7 +133,7 @@ public class ClassPathApplicationContext implements ApplicationContext {
                 Bean bean = new Bean(beanId, value);
                 beanMap.put(beanId, bean);
 
-                if (isBeanPostProcessor(clazz)) {
+                if (isImplements(clazz, BeanPostProcessor.class)) {
                     beanPostProcessors.add(value);
                 }
             }
@@ -188,16 +209,6 @@ public class ClassPathApplicationContext implements ApplicationContext {
                 throw new RuntimeException("Exception while trying to invoke BeanPostProcessor " + postProcessor + " method " + methodName, e);
             }
         }
-    }
-
-    private boolean isBeanPostProcessor(Class<?> clazz) {
-        for (Class<?> currentInterface : clazz.getInterfaces()) {
-            if (currentInterface == BeanPostProcessor.class) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private String getSetterMethodName(String fieldName) {

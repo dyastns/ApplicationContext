@@ -5,6 +5,7 @@ public class TestClass4 {
     private boolean field42;
     private int field43;
     private int field44;
+    private String field45;
 
     public boolean getField41() {
         return field41;
@@ -36,5 +37,13 @@ public class TestClass4 {
 
     public void setField44(int field44) {
         this.field44 = field44;
+    }
+
+    public String getField45() {
+        return field45;
+    }
+
+    public void setField45(String field45) {
+        this.field45 = field45;
     }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+    <bean id="testClass4" class="com.study.applicationcontext.impl.TestClass4">
+        <property name="field45" value="field value before BFPP"/>
+    </bean>
+
+    <bean id="testBeanFactoryPostProcessor" class="com.study.applicationcontext.impl.TestBeanFactoryPostProcessor"/>
+</beans>
