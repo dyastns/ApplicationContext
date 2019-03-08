@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+    <bean id="testClass2ext" class="com.study.applicationcontext.impl.TestClass2ext">
+        <property name="field" value="declared_field_testValue"/>
+        <property name="field21" value="field_testValue_other"/>
+        <property name="field22" value="55555"/>
+        <property name="refField21" ref="testClass1"/>
+        <property name="refField22" ref="testClass3"/>
+    </bean>
+</beans>

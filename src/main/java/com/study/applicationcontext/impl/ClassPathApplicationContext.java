@@ -10,7 +10,6 @@ import com.study.applicationcontext.service.BeanPostProcessor;
 import com.study.applicationcontext.service.impl.XMLBeanDefinitionReader;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -156,7 +155,7 @@ public class ClassPathApplicationContext implements ApplicationContext {
 
                     if (dependencies != null) {
                         for (String fieldName : dependencies.keySet()) {
-                            Field field = clazz.getDeclaredField(fieldName);
+                            Field field = getField(clazz, fieldName);
                             Method setter = clazz.getMethod(getSetterMethodName(fieldName), field.getType());
                             injectTypedValue(value, setter, dependencies.get(fieldName), field.getType());
                         }
@@ -181,7 +180,7 @@ public class ClassPathApplicationContext implements ApplicationContext {
 
                     if (refDependencies != null) {
                         for (String fieldName : refDependencies.keySet()) {
-                            Field field = clazz.getDeclaredField(fieldName);
+                            Field field = getField(clazz, fieldName);
                             Method setter = clazz.getMethod(getSetterMethodName(fieldName), field.getType());
                             Object argument = beanMap.get(refDependencies.get(fieldName)).getValue();
                             setter.invoke(value, argument);
@@ -207,6 +206,19 @@ public class ClassPathApplicationContext implements ApplicationContext {
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Exception while trying to invoke BeanPostProcessor " + postProcessor + " method " + methodName, e);
+            }
+        }
+    }
+
+    private Field getField(Class clazz, String fieldName) throws NoSuchFieldException {
+        try {
+            return clazz.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            clazz = clazz.getSuperclass();
+            if (clazz != null) {
+                return getField(clazz, fieldName);
+            } else {
+                throw new NoSuchFieldException(fieldName);
             }
         }
     }

@@ -44,13 +44,14 @@ public class ClassPathApplicationContextTest {
     @Test
     public void testClassPathApplicationContext() {
         //prepare
-        String[] path = {"/test-context1.xml", "/test-context2.xml"};
+        String[] path = {"/test-context1.xml", "/test-context2.xml", "/test-context3.xml"};
 
         Map<String, Bean> expectedBeanMap = new HashMap<>();
         expectedBeanMap.put("testClass1", new Bean("testClass1", new TestClass1()));
         expectedBeanMap.put("testClass21", new Bean("testClass21", new TestClass2()));
         expectedBeanMap.put("testClass22", new Bean("testClass22", new TestClass2()));
         expectedBeanMap.put("testClass3", new Bean("testClass3", new TestClass3()));
+        expectedBeanMap.put("testClass2ext", new Bean("testClass2ext", new TestClass2ext()));
 
         //when
         ClassPathApplicationContext applicationContext = new ClassPathApplicationContext(path);
@@ -85,6 +86,12 @@ public class ClassPathApplicationContextTest {
         assertEquals("field_testValue_other", value22.getField21());
         assertEquals(55555, value22.getField22());
 
+        Bean bean2ext = actualBeanMap.get("testClass2ext");
+        TestClass2ext value2ext = (TestClass2ext) bean2ext.getValue();
+        assertEquals("declared_field_testValue", value2ext.getField());
+        assertEquals("field_testValue_other", value2ext.getField21());
+        assertEquals(55555, value2ext.getField22());
+
         //check refDependencies
         Bean bean3 = actualBeanMap.get("testClass3");
         TestClass3 value3 = (TestClass3) bean3.getValue();
@@ -95,6 +102,9 @@ public class ClassPathApplicationContextTest {
 
         assertEquals(value1, value22.getRefField21());
         assertEquals(value3, value22.getRefField22());
+
+        assertEquals(value1, value2ext.getRefField21());
+        assertEquals(value3, value2ext.getRefField22());
     }
 
     @Test
